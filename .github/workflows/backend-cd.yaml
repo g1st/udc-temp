@@ -20,6 +20,8 @@ defaults:
 permissions:
   contents: read
 
+env:
+
 jobs:
   backend-ci:
     uses: ./.github/workflows/backend-ci.yaml
@@ -54,3 +56,51 @@ jobs:
         run: |
           docker build  -t $REGISTRY/$REPOSITORY:$IMAGE_TAG .
           docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
+
+  build-eks:
+    needs: push-to-ecr
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: ./starter/backend/k8s
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
+          aws-region: us-east-1
+
+      - name: Configure kubeconfig
+        run: aws eks update-kubeconfig --name cluster --region us-east-1
+
+      - name: Setup Kustomize
+        uses: imranismail/setup-kustomize@v2
+        with:
+          kustomize-version: '5.0.0'
+
+      - name: Get ecr repo uri and tag
+        run: |
+          LATEST_IMAGE=$(aws ecr describe-images \
+            --repository-name your-repo-name \
+            --query 'sort_by(imageDetails,& imagePushedAt)[-1]' \
+            --output json)
+
+          REPO_URI=$(aws ecr describe-repositories \
+            --repository-names frontend \
+            --query 'repositories[0].repositoryUri' \
+            --output text)
+
+          TAG=$(echo $LATEST_IMAGE | jq -r '.imageTags[0]')
+
+          echo "REPO_URI=$REPO_URI" >> "$GITHUB_ENV"
+          echo "TAG=$TAG" >> "$GITHUB_ENV"
+
+      - name: Build and apply | Deploy with Kustomize
+        run: |
+          kustomize edit set image frontend=$REPO_URI:$TAG
+          kustomize build | kubectl apply -f -
