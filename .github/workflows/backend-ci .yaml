@@ -1,0 +1,80 @@
+name: Backend CI
+
+on:
+  pull_request:
+    paths:
+      - '**/backend/**'
+    branches:
+      - 'main'
+  workflow_dispatch:
+
+defaults:
+  run:
+    shell: bash
+    working-directory: ./starter/backend
+
+jobs:
+  lint:
+    name: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        name: Checkout
+        with:
+          ref: main
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: 3.10
+          cache: 'pipenv'
+
+      - name: Install pipenv
+        run: pip install pipenv
+
+      - name: Run tests
+        run: |
+          pipenv install --dev
+          pipenv run lint
+
+  test:
+    name: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        name: Checkout
+        with:
+          ref: main
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: 3.10
+          cache: 'pipenv'
+
+      - name: Install pipenv
+        run: pip install pipenv
+
+      - name: Run tests
+        run: |
+          pipenv install --dev
+          pipenv run test
+
+  build:
+    needs: [lint, test]
+    runs-on: ubuntu-latest
+    name: build
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: main
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: 3.10
+          cache: 'pipenv'
+
+      - name: Install pipenv
+        run: pip install pipenv
+
+      - name: Build docker image
+        run: docker build --tag mp-backend:latest .
