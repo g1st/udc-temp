@@ -1,24 +1,24 @@
-FROM  public.ecr.aws/docker/library/node:18.14.2-alpine3.17
-
-ARG REACT_APP_MOVIE_API_URL
-ENV REACT_APP_MOVIE_API_URL=${REACT_APP_MOVIE_API_URL}
+FROM node:18 AS builder
 
 WORKDIR /app
 
-# Copy dependdency files
-COPY package*.json ./
+ARG REACT_APP_MOVIE_API_URL
+ENV REACT_APP_MOVIE_API_URL=$REACT_APP_MOVIE_API_URL
 
-# Install packages
+COPY package*.json ./
 RUN npm ci
 
-# Copy code
 COPY . .
 
-# Build the app
+# Explicitly write .env.production from build arg. 
+RUN echo "REACT_APP_MOVIE_API_URL=$REACT_APP_MOVIE_API_URL" > .env.production
+
 RUN npm run build
 
-# Expose the port used by the React app
-EXPOSE 3000
+FROM nginx:alpine as runner
 
-# Start the React app when the container starts
-CMD ["npm", "run", "serve"]
+COPY --from=builder /app/build /usr/share/nginx/html
+
+EXPOSE 80
+
+CMD ["nginx", "-g", "daemon off;"]
