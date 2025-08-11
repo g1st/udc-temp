@@ -58,7 +58,7 @@ jobs:
           docker push $REGISTRY/${{ env.REPOSITORY }}:$IMAGE_TAG
 
   deploy-to-eks:
-    name: Frontend CD
+    name: deploy to eks
     needs: push-to-ecr
     runs-on: ubuntu-latest
     defaults:
