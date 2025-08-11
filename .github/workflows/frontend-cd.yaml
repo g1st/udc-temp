@@ -54,12 +54,11 @@ jobs:
           IMAGE_TAG: ${{ github.sha }}
         run: |
           echo "REGISTRY=${{ steps.login-ecr.outputs.registry }}" >> "$GITHUB_ENV"
-          kubectl get svc
-          export EXTERNALIP=$(kubectl get svc backend -o=jsonpath='{.status.loadBalancer.ingress[0].hostname}{"\n"}{.status.loadBalancer.ingress[0].ip}')
-          echo "EXTERNALIP=$EXTERNALIP"  >> "$GITHUB_ENV"
-          docker build --build-arg REACT_APP_MOVIE_API_URL=http://$EXTERNALIP -t $REGISTRY/${{ env.REPOSITORY }}:$IMAGE_TAG .
-          docker tag $REGISTRY/${{ env.REPOSITORY }}:$IMAGE_TAG 986744115855.dkr.ecr.us-east-1.amazonaws.com/$REGISTRY/${{ env.REPOSITORY }}:$IMAGE_TAG
-          docker push 986744115855.dkr.ecr.us-east-1.amazonaws.com/$REGISTRY/${{ env.REPOSITORY }}:$IMAGE_TAG
+          docker build \ 
+            --build-arg REACT_APP_MOVIE_API_URL=http://$EXTERNALIP \
+            -t $REGISTRY/${{ env.REPOSITORY }}:$IMAGE_TAG .
+          docker tag $REGISTRY/${{ env.REPOSITORY }}:$IMAGE_TAG 118801238330.dkr.ecr./${{ env.AWS_REGION }}.amazonaws.com/$REGISTRY/${{ env.REPOSITORY }}:$IMAGE_TAG
+          docker push 118801238330.dkr.ecr.us-east-1.amazonaws.com/$REGISTRY/${{ env.REPOSITORY }}:$IMAGE_TAG
 
   deploy-to-eks:
     name: deploy to eks
@@ -88,5 +87,5 @@ jobs:
       - name: Update kubeconfig for EKS cluster
         run: |
           aws eks update-kubeconfig --region ${{ env.AWS_REGION }} --name cluster
-          kustomize edit set image frontend=986744115855.dkr.ecr.us-east-1.amazonaws.com/$REGISTRY/${{ env.REPOSITORY }}:${{ github.sha }}
+          kustomize edit set image frontend=118801238330.dkr.ecr.us-east-1.amazonaws.com/$REGISTRY/${{ env.REPOSITORY }}:${{ github.sha }}
           kustomize build | kubectl apply -f -
