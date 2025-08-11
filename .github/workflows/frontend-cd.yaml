@@ -53,11 +53,16 @@ jobs:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           IMAGE_TAG: ${{ github.sha }}
         run: |
+          echo "REPOSITORY: '${{ env.REPOSITORY }}'"
+          echo "IMAGE_TAG: '$IMAGE_TAG'"
+          echo "AWS_REGION: '${{ env.AWS_REGION }}'"
+          echo "Full source tag: 'test/${{ env.REPOSITORY }}:$IMAGE_TAG'"
+          echo "Full target tag: '118801238330.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.REPOSITORY }}:$IMAGE_TAG'"
           docker build \
             --build-arg REACT_APP_MOVIE_API_URL=http://test:5000 \
             -t test/${{ env.REPOSITORY }}:$IMAGE_TAG .
           docker tag test/${{ env.REPOSITORY }}:$IMAGE_TAG 118801238330.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.REPOSITORY }}:$IMAGE_TAG
-          docker push 118801238330.dkr.ecr./${{ env.AWS_REGION }}.amazonaws.com/${{ env.REPOSITORY }}:$IMAGE_TAG
+          docker push 118801238330.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.REPOSITORY }}:$IMAGE_TAG
 
   deploy-to-eks:
     name: deploy to eks
