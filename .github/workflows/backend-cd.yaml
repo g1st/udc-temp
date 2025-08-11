@@ -85,12 +85,12 @@ jobs:
       - name: Get ecr repo uri and tag
         run: |
           LATEST_IMAGE=$(aws ecr describe-images \
-            --repository-name frontend \
+            --repository-name backend \
             --query 'sort_by(imageDetails,& imagePushedAt)[-1]' \
             --output json)
 
           REPO_URI=$(aws ecr describe-repositories \
-            --repository-names frontend \
+            --repository-names backend \
             --query 'repositories[0].repositoryUri' \
             --output text)
 
@@ -101,5 +101,5 @@ jobs:
 
       - name: Build and apply | Deploy with Kustomize
         run: |
-          kustomize edit set image frontend=$REPO_URI:$TAG
+          kustomize edit set image backend=$REPO_URI:$TAG
           kustomize build | kubectl apply -f -
