@@ -26,7 +26,7 @@ jobs:
     name: Backend CI - Lint, Test & Build
 
   push-to-ecr:
-    name: Backend CD
+    name: Push Docker Image to ECR
     needs: backend-ci
     runs-on: ubuntu-latest
     steps:
@@ -55,9 +55,10 @@ jobs:
           docker build  -t $REGISTRY/$REPOSITORY:$IMAGE_TAG .
           docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
 
-  build-eks:
+  deploy-to-eks:
     needs: push-to-ecr
     runs-on: ubuntu-latest
+    name: Deploy to EKS
     defaults:
       run:
         shell: bash
@@ -84,7 +85,7 @@ jobs:
       - name: Get ecr repo uri and tag
         run: |
           LATEST_IMAGE=$(aws ecr describe-images \
-            --repository-name your-repo-name \
+            --repository-name frontend \
             --query 'sort_by(imageDetails,& imagePushedAt)[-1]' \
             --output json)
 
