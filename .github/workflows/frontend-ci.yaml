@@ -75,6 +75,3 @@ jobs:
 
       - name: Test
         run: npm run build
-
-      - name: Build docker image
-        run: docker build --build-arg=REACT_APP_MOVIE_API_URL=${{ vars.REACT_APP_MOVIE_API_URL }} --tag=mp-frontend:latest .
