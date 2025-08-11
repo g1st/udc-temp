@@ -4,7 +4,7 @@ on:
   push:
     paths:
       - '**/frontend/**'
-      - './.github/workflows/frontend-cd.yaml'
+      - '.github/workflows/frontend-cd.yaml'
     branches:
       - 'main'
   workflow_dispatch:
@@ -86,8 +86,6 @@ jobs:
       - name: Update kubeconfig for EKS cluster
         run: |
           aws eks update-kubeconfig --region ${{ env.AWS_REGION }} --name cluster
-          kustomize edit set image frontend=118801238330.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.REPOSITORY }}:${{ github.sha }}
-          kustomize build | kubectl apply -f -
 
       - name: Deploy to EKS
         run: |
