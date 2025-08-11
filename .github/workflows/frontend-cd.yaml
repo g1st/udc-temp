@@ -80,6 +80,11 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
+      - name: Install kustomize
+        run: |
+          curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash
+          sudo mv kustomize /usr/local/bin/
+
       - name: Update kubeconfig for EKS cluster
         run: |
           aws eks update-kubeconfig --region ${{ env.AWS_REGION }} --name cluster
