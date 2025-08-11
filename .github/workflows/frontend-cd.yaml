@@ -55,7 +55,7 @@ jobs:
         run: |
           echo "REGISTRY=${{ steps.login-ecr.outputs.registry }}" >> "$GITHUB_ENV"
           docker build \ 
-            --build-arg REACT_APP_MOVIE_API_URL=http://$EXTERNALIP \
+            --build-arg REACT_APP_MOVIE_API_URL=http://test:5000 \
             -t $REGISTRY/${{ env.REPOSITORY }}:$IMAGE_TAG .
           docker tag $REGISTRY/${{ env.REPOSITORY }}:$IMAGE_TAG 118801238330.dkr.ecr./${{ env.AWS_REGION }}.amazonaws.com/$REGISTRY/${{ env.REPOSITORY }}:$IMAGE_TAG
           docker push 118801238330.dkr.ecr.us-east-1.amazonaws.com/$REGISTRY/${{ env.REPOSITORY }}:$IMAGE_TAG
