@@ -53,9 +53,13 @@ jobs:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           IMAGE_TAG: ${{ github.sha }}
         run: |
-          echo "REGISTRY=${{ steps.login-ecr.outputs.registry }}" >> "$GITHUB_ENV"
-          docker build --build-arg=REACT_APP_MOVIE_API_URL=${{ vars.REACT_APP_MOVIE_API_URL }} -t $REGISTRY/${{ env.REPOSITORY }}:$IMAGE_TAG .
-          docker push $REGISTRY/${{ env.REPOSITORY }}:$IMAGE_TAG
+          echo "REGISTRY=${{ steps.login-ecr.outputs.registry }}"" >> "$GITHUB_ENV"
+          kubectl get svc
+          export EXTERNALIP=$(kubectl get svc backend -o=jsonpath='{.status.loadBalancer.ingress[0].hostname}{"\n"}{.status.loadBalancer.ingress[0].ip}')
+          echo "EXTERNALIP=$EXTERNALIP"  >> "$GITHUB_ENV"
+          docker build --build-arg REACT_APP_MOVIE_API_URL=http://$EXTERNALIP -t $REGISTRY/${{ env.REPOSITORY }}:$IMAGE_TAG .
+          docker tag $REGISTRY/${{ env.REPOSITORY }}:$IMAGE_TAG 986744115855.dkr.ecr.us-east-1.amazonaws.com/$REGISTRY/${{ env.REPOSITORY }}:$IMAGE_TAG
+          docker push 986744115855.dkr.ecr.us-east-1.amazonaws.com/$REGISTRY/${{ env.REPOSITORY }}:$IMAGE_TAG
 
   deploy-to-eks:
     name: deploy to eks
@@ -76,44 +80,8 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Install kubectl
-        run: |
-          curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-          chmod +x kubectl
-          sudo mv kubectl /usr/local/bin/
-
       - name: Update kubeconfig for EKS cluster
         run: |
           aws eks update-kubeconfig --region ${{ env.AWS_REGION }} --name cluster
-
-      # - name: Setup Kustomize
-      #   uses: imranismail/setup-kustomize@v2
-      #   with:
-      #     kustomize-version: '5.0.0'
-
-      - name: Get ecr repo uri and tag
-        run: |
-          LATEST_IMAGE=$(aws ecr describe-images \
-            --repository-name frontend \
-            --query 'sort_by(imageDetails,& imagePushedAt)[-1]' \
-            --output json)
-
-          REPO_URI=$(aws ecr describe-repositories \
-            --repository-names frontend \
-            --query 'repositories[0].repositoryUri' \
-            --output text)
-
-          TAG=$(echo $LATEST_IMAGE | jq -r '.imageTags[0]')
-
-          echo "REPO_URI=$REPO_URI" >> "$GITHUB_ENV"
-          echo "TAG=$TAG" >> "$GITHUB_ENV"
-
-      # - name: Build and apply | Deploy with Kustomize
-      #   run: |
-      #     kustomize edit set image frontend=$REPO_URI:$TAG
-      #     kustomize build | kubectl apply -f -
-
-      - name: Deploy to EKS
-        run: |
-          kubectl apply -f -
-          kubectl set image deployment/frontend frontend=$REGISTRY/${{ env.REPOSITORY }}:${{ github.sha }}
+          kustomize edit set image frontend=986744115855.dkr.ecr.us-east-1.amazonaws.com/$REGISTRY/${{ env.REPOSITORY }}:${{ github.sha }}
+          kustomize build | kubectl apply -f -
