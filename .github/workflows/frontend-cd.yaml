@@ -53,12 +53,11 @@ jobs:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           IMAGE_TAG: ${{ github.sha }}
         run: |
-          echo "REGISTRY=${{ steps.login-ecr.outputs.registry }}" >> "$GITHUB_ENV"
           docker build \ 
             --build-arg REACT_APP_MOVIE_API_URL=http://test:5000 \
-            -t $REGISTRY/${{ env.REPOSITORY }}:$IMAGE_TAG .
-          docker tag $REGISTRY/${{ env.REPOSITORY }}:$IMAGE_TAG 118801238330.dkr.ecr./${{ env.AWS_REGION }}.amazonaws.com/$REGISTRY/${{ env.REPOSITORY }}:$IMAGE_TAG
-          docker push 118801238330.dkr.ecr.us-east-1.amazonaws.com/$REGISTRY/${{ env.REPOSITORY }}:$IMAGE_TAG
+            -t test/${{ env.REPOSITORY }}:$IMAGE_TAG .
+          docker tag test/${{ env.REPOSITORY }}:$IMAGE_TAG 118801238330.dkr.ecr./${{ env.AWS_REGION }}.amazonaws.com/${{ env.REPOSITORY }}:$IMAGE_TAG
+          docker push 118801238330.dkr.ecr./${{ env.AWS_REGION }}.amazonaws.com/${{ env.REPOSITORY }}:$IMAGE_TAG
 
   deploy-to-eks:
     name: deploy to eks
@@ -87,5 +86,5 @@ jobs:
       - name: Update kubeconfig for EKS cluster
         run: |
           aws eks update-kubeconfig --region ${{ env.AWS_REGION }} --name cluster
-          kustomize edit set image frontend=118801238330.dkr.ecr.us-east-1.amazonaws.com/$REGISTRY/${{ env.REPOSITORY }}:${{ github.sha }}
+          kustomize edit set image frontend=118801238330.dkr.ecr./${{ env.AWS_REGION }}.amazonaws.com/${{ env.REPOSITORY }}:${{ github.sha }}
           kustomize build | kubectl apply -f -
