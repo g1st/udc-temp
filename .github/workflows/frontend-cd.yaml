@@ -16,14 +16,8 @@ defaults:
 
 jobs:
   lint-test-build:
+    uses: ./.github/workflows/frontend-ci.yaml
     name: Frontend CI
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./
-    steps:
-      - name: Frontend CI
-        uses: ./.github/workflows/frontend-ci.yaml
 
   push-to-ecr:
     name: Frontend CI
