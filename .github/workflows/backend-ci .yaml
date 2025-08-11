@@ -3,6 +3,7 @@ name: Backend CI
 on:
   pull_request:
     paths:
+      - '.github/workflows/backend-ci.yaml'
       - '**/backend/**'
     branches:
       - 'main'
