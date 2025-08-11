@@ -3,13 +3,13 @@ name: Backend CD
 on:
   pull_request:
     paths:
-      - '.github/workflows/backend-ci.yaml'
+      - '.github/workflows/backend-cd.yaml'
       - '**/backend/**'
     branches:
       - 'main'
   push:
     paths:
-      - '.github/workflows/backend-ci.yaml'
+      - '.github/workflows/backend-cd.yaml'
   workflow_dispatch:
 
 defaults:
