@@ -7,6 +7,9 @@ on:
       - '**/backend/**'
     branches:
       - 'main'
+  push:
+    paths:
+      - '.github/workflows/backend-ci.yaml'
   workflow_dispatch:
 
 defaults:
