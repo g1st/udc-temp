@@ -53,7 +53,7 @@ jobs:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           IMAGE_TAG: ${{ github.sha }}
         run: |
-          echo "REGISTRY=${{ steps.login-ecr.outputs.registry }}"" >> "$GITHUB_ENV"
+          echo "REGISTRY=${{ steps.login-ecr.outputs.registry }}" >> "$GITHUB_ENV"
           kubectl get svc
           export EXTERNALIP=$(kubectl get svc backend -o=jsonpath='{.status.loadBalancer.ingress[0].hostname}{"\n"}{.status.loadBalancer.ingress[0].ip}')
           echo "EXTERNALIP=$EXTERNALIP"  >> "$GITHUB_ENV"
